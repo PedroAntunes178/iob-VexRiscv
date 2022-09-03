@@ -34,14 +34,13 @@ module iob_VexRiscv
     input [`N_CORES-1:0] externalInterrupt
     );
 
-
     // INSTRUCTIONS BUS
     wire                  ibus_req_valid;
     wire              ibus_req_valid_int;
     wire                  ibus_req_ready;
     wire [`ADDR_W-1:0]  ibus_req_address;
     wire [`ADDR_W-1:0] ibus_req_addr_int;
-    wire [1:0]             ibus_req_size;
+    wire [2:0]             ibus_req_size;
     wire                 ibus_resp_ready;
     wire [`DATA_W-1:0]    ibus_resp_data;
     wire                 ibus_resp_error;
@@ -56,8 +55,8 @@ module iob_VexRiscv
     assign ibus_req = {ibus_req_valid_int, {1'b0}, ibus_req_addr_int[`ADDR_W-2:0], `DATA_W'h0, {`DATA_W/8{1'b0}}};
 `endif
     assign ibus_req_ready = ibus_req_valid_reg ~^ ibus_resp_ready;
-    assign ibus_req_valid_int = (ibus_req_ready|ibus_resp_ready)? ibus_req_valid : ibus_req_valid_reg;
-    assign ibus_req_addr_int = (ibus_req_ready|ibus_resp_ready) ? ibus_req_address : ibus_req_addr_reg;
+    assign ibus_req_valid_int = (ibus_req_ready|ibus_resp_ready)? icache_valid : ibus_req_valid_reg;
+    assign ibus_req_addr_int = (ibus_req_ready|ibus_resp_ready) ? icache_addr : ibus_req_addr_reg;
     assign ibus_resp_ready = ibus_resp[`ready(0)];
     assign ibus_resp_data = ibus_resp[`rdata(0)];
     assign ibus_resp_error = 1'b0;
@@ -68,14 +67,27 @@ module iob_VexRiscv
       if(rst)
         ibus_req_valid_reg <= 1'b0;
       else if(ibus_req_ready|ibus_resp_ready)
-        ibus_req_valid_reg <= ibus_req_valid;
+        ibus_req_valid_reg <= icache_valid;
     //compute address for interface
     always @(posedge clk, posedge rst)
       if(rst)
         ibus_req_addr_reg <= 32'h0000;
       else if(ibus_req_ready|ibus_resp_ready)
-        ibus_req_addr_reg <= ibus_req_address;
-
+        ibus_req_addr_reg <= icache_addr;
+    
+    //Logic for more than 4bytes per cashe line
+    wire              icache_valid;
+    wire [`ADDR_W-1:0] icache_addr;
+    reg  [3:0]      icache_counter;
+    always @(posedge clk, posedge rst)
+      if (rst)
+        icache_counter <= 4'hf;
+      else if(ibus_req_valid)
+        icache_counter <= 4'h0;
+      else if(ibus_resp_ready)
+        icache_counter <= icache_counter + 1'b1;
+    assign icache_valid = ibus_req_valid|(icache_counter<4'h7);
+    assign icache_addr = ibus_req_valid ? ibus_req_address : (icache_counter<4'h7 ? ibus_req_address+((icache_counter+1'b1)<<2) : ibus_req_address+8'h1c);
 
     // DATA BUS
     wire                    dbus_req_valid;

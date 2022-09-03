@@ -13,12 +13,11 @@ object LinuxGen {
         new IBusCachedPlugin(
           resetVector = 0x80000000l,
           prediction = NONE,
-          historyRamSizeLog2 = 10,
           compressedGen = true,
           injectorStage = true,
           config = InstructionCacheConfig(
-            cacheSize = 4096,
-            bytePerLine = 4,
+            cacheSize = 4096*1,
+            bytePerLine = 32,
             wayCount = 1,
             addressWidth = 32,
             cpuDataWidth = 32,
@@ -26,7 +25,7 @@ object LinuxGen {
             catchIllegalAccess = true,
             catchAccessFault = true,
             asyncTagMemory = false,
-            twoCycleRam = true,
+            twoCycleRam = false,
             twoCycleCache = true
           ),
           memoryTranslatorPortConfig = MmuPortConfig(
