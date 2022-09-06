@@ -33,9 +33,9 @@ object LinuxGen {
           )
         ),
         new DBusCachedPlugin(
-          //dBusCmdMasterPipe = true,
-          //dBusCmdSlavePipe = true,
-          //dBusRspSlavePipe = true,
+          dBusCmdMasterPipe = true,
+          dBusCmdSlavePipe = true,
+          dBusRspSlavePipe = true,
           config = new DataCacheConfig(
             cacheSize         = 4096,
             bytePerLine       = 4,

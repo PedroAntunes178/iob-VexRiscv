@@ -123,6 +123,7 @@ module VexRiscv (
   wire                dataCache_1_io_cpu_flush_valid;
   wire                dataCache_1_io_cpu_flush_payload_singleLine;
   wire       [9:0]    dataCache_1_io_cpu_flush_payload_lineId;
+  wire                dataCache_1_io_mem_cmd_ready;
   reg        [31:0]   _zz_RegFilePlugin_regFile_port0;
   reg        [31:0]   _zz_RegFilePlugin_regFile_port1;
   wire                IBusCachedPlugin_cache_io_cpu_prefetch_haltIt;
@@ -1186,6 +1187,45 @@ module VexRiscv (
   wire                when_IBusCachedPlugin_l250;
   wire                when_IBusCachedPlugin_l256;
   wire                when_IBusCachedPlugin_l267;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_valid;
+  reg                 dataCache_1_io_mem_cmd_s2mPipe_ready;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_payload_wr;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_payload_uncached;
+  wire       [31:0]   dataCache_1_io_mem_cmd_s2mPipe_payload_address;
+  wire       [31:0]   dataCache_1_io_mem_cmd_s2mPipe_payload_data;
+  wire       [3:0]    dataCache_1_io_mem_cmd_s2mPipe_payload_mask;
+  wire       [1:0]    dataCache_1_io_mem_cmd_s2mPipe_payload_size;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_payload_last;
+  reg                 dataCache_1_io_mem_cmd_rValid;
+  reg                 dataCache_1_io_mem_cmd_rData_wr;
+  reg                 dataCache_1_io_mem_cmd_rData_uncached;
+  reg        [31:0]   dataCache_1_io_mem_cmd_rData_address;
+  reg        [31:0]   dataCache_1_io_mem_cmd_rData_data;
+  reg        [3:0]    dataCache_1_io_mem_cmd_rData_mask;
+  reg        [1:0]    dataCache_1_io_mem_cmd_rData_size;
+  reg                 dataCache_1_io_mem_cmd_rData_last;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_valid;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_ready;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_wr;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_uncached;
+  wire       [31:0]   dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_address;
+  wire       [31:0]   dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_data;
+  wire       [3:0]    dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_mask;
+  wire       [1:0]    dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_size;
+  wire                dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_last;
+  reg                 dataCache_1_io_mem_cmd_s2mPipe_rValid;
+  reg                 dataCache_1_io_mem_cmd_s2mPipe_rData_wr;
+  reg                 dataCache_1_io_mem_cmd_s2mPipe_rData_uncached;
+  reg        [31:0]   dataCache_1_io_mem_cmd_s2mPipe_rData_address;
+  reg        [31:0]   dataCache_1_io_mem_cmd_s2mPipe_rData_data;
+  reg        [3:0]    dataCache_1_io_mem_cmd_s2mPipe_rData_mask;
+  reg        [1:0]    dataCache_1_io_mem_cmd_s2mPipe_rData_size;
+  reg                 dataCache_1_io_mem_cmd_s2mPipe_rData_last;
+  wire                when_Stream_l368;
+  reg                 dBus_rsp_regNext_valid;
+  reg                 dBus_rsp_regNext_payload_last;
+  reg        [31:0]   dBus_rsp_regNext_payload_data;
+  reg                 dBus_rsp_regNext_payload_error;
   reg        [31:0]   DBusCachedPlugin_rspCounter;
   wire                when_DBusCachedPlugin_l308;
   wire                when_DBusCachedPlugin_l316;
@@ -2718,7 +2758,7 @@ module VexRiscv (
     .io_cpu_flush_payload_singleLine        (dataCache_1_io_cpu_flush_payload_singleLine      ), //i
     .io_cpu_flush_payload_lineId            (dataCache_1_io_cpu_flush_payload_lineId[9:0]     ), //i
     .io_mem_cmd_valid                       (dataCache_1_io_mem_cmd_valid                     ), //o
-    .io_mem_cmd_ready                       (dBus_cmd_ready                                   ), //i
+    .io_mem_cmd_ready                       (dataCache_1_io_mem_cmd_ready                     ), //i
     .io_mem_cmd_payload_wr                  (dataCache_1_io_mem_cmd_payload_wr                ), //o
     .io_mem_cmd_payload_uncached            (dataCache_1_io_mem_cmd_payload_uncached          ), //o
     .io_mem_cmd_payload_address             (dataCache_1_io_mem_cmd_payload_address[31:0]     ), //o
@@ -2726,10 +2766,10 @@ module VexRiscv (
     .io_mem_cmd_payload_mask                (dataCache_1_io_mem_cmd_payload_mask[3:0]         ), //o
     .io_mem_cmd_payload_size                (dataCache_1_io_mem_cmd_payload_size[1:0]         ), //o
     .io_mem_cmd_payload_last                (dataCache_1_io_mem_cmd_payload_last              ), //o
-    .io_mem_rsp_valid                       (dBus_rsp_valid                                   ), //i
-    .io_mem_rsp_payload_last                (dBus_rsp_payload_last                            ), //i
-    .io_mem_rsp_payload_data                (dBus_rsp_payload_data[31:0]                      ), //i
-    .io_mem_rsp_payload_error               (dBus_rsp_payload_error                           ), //i
+    .io_mem_rsp_valid                       (dBus_rsp_regNext_valid                           ), //i
+    .io_mem_rsp_payload_last                (dBus_rsp_regNext_payload_last                    ), //i
+    .io_mem_rsp_payload_data                (dBus_rsp_regNext_payload_data[31:0]              ), //i
+    .io_mem_rsp_payload_error               (dBus_rsp_regNext_payload_error                   ), //i
     .clk                                    (clk                                              ), //i
     .reset                                  (reset                                            )  //i
   );
@@ -5178,14 +5218,40 @@ module VexRiscv (
   assign IBusCachedPlugin_iBusRsp_output_payload_rsp_inst = IBusCachedPlugin_cache_io_cpu_decode_data;
   assign IBusCachedPlugin_iBusRsp_output_payload_pc = IBusCachedPlugin_iBusRsp_stages_2_output_payload;
   assign IBusCachedPlugin_cache_io_flush = (decode_arbitration_isValid && decode_FLUSH_ALL);
-  assign dBus_cmd_valid = dataCache_1_io_mem_cmd_valid;
-  assign dBus_cmd_payload_wr = dataCache_1_io_mem_cmd_payload_wr;
-  assign dBus_cmd_payload_uncached = dataCache_1_io_mem_cmd_payload_uncached;
-  assign dBus_cmd_payload_address = dataCache_1_io_mem_cmd_payload_address;
-  assign dBus_cmd_payload_data = dataCache_1_io_mem_cmd_payload_data;
-  assign dBus_cmd_payload_mask = dataCache_1_io_mem_cmd_payload_mask;
-  assign dBus_cmd_payload_size = dataCache_1_io_mem_cmd_payload_size;
-  assign dBus_cmd_payload_last = dataCache_1_io_mem_cmd_payload_last;
+  assign dataCache_1_io_mem_cmd_ready = (! dataCache_1_io_mem_cmd_rValid);
+  assign dataCache_1_io_mem_cmd_s2mPipe_valid = (dataCache_1_io_mem_cmd_valid || dataCache_1_io_mem_cmd_rValid);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_wr = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_wr : dataCache_1_io_mem_cmd_payload_wr);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_uncached = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_uncached : dataCache_1_io_mem_cmd_payload_uncached);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_address = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_address : dataCache_1_io_mem_cmd_payload_address);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_data = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_data : dataCache_1_io_mem_cmd_payload_data);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_mask = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_mask : dataCache_1_io_mem_cmd_payload_mask);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_size = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_size : dataCache_1_io_mem_cmd_payload_size);
+  assign dataCache_1_io_mem_cmd_s2mPipe_payload_last = (dataCache_1_io_mem_cmd_rValid ? dataCache_1_io_mem_cmd_rData_last : dataCache_1_io_mem_cmd_payload_last);
+  always @(*) begin
+    dataCache_1_io_mem_cmd_s2mPipe_ready = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_ready;
+    if(when_Stream_l368) begin
+      dataCache_1_io_mem_cmd_s2mPipe_ready = 1'b1;
+    end
+  end
+
+  assign when_Stream_l368 = (! dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_valid);
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_valid = dataCache_1_io_mem_cmd_s2mPipe_rValid;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_wr = dataCache_1_io_mem_cmd_s2mPipe_rData_wr;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_uncached = dataCache_1_io_mem_cmd_s2mPipe_rData_uncached;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_address = dataCache_1_io_mem_cmd_s2mPipe_rData_address;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_data = dataCache_1_io_mem_cmd_s2mPipe_rData_data;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_mask = dataCache_1_io_mem_cmd_s2mPipe_rData_mask;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_size = dataCache_1_io_mem_cmd_s2mPipe_rData_size;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_last = dataCache_1_io_mem_cmd_s2mPipe_rData_last;
+  assign dBus_cmd_valid = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_valid;
+  assign dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_ready = dBus_cmd_ready;
+  assign dBus_cmd_payload_wr = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_wr;
+  assign dBus_cmd_payload_uncached = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_uncached;
+  assign dBus_cmd_payload_address = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_address;
+  assign dBus_cmd_payload_data = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_data;
+  assign dBus_cmd_payload_mask = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_mask;
+  assign dBus_cmd_payload_size = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_size;
+  assign dBus_cmd_payload_last = dataCache_1_io_mem_cmd_s2mPipe_m2sPipe_payload_last;
   assign when_DBusCachedPlugin_l308 = ((DBusCachedPlugin_mmuBus_busy && decode_arbitration_isValid) && decode_MEMORY_ENABLE);
   always @(*) begin
     _zz_decode_MEMORY_FORCE_CONSTISTENCY = 1'b0;
@@ -7382,6 +7448,9 @@ module VexRiscv (
       IBusCachedPlugin_injector_nextPcCalc_valids_2 <= 1'b0;
       IBusCachedPlugin_injector_nextPcCalc_valids_3 <= 1'b0;
       IBusCachedPlugin_rspCounter <= 32'h0;
+      dataCache_1_io_mem_cmd_rValid <= 1'b0;
+      dataCache_1_io_mem_cmd_s2mPipe_rValid <= 1'b0;
+      dBus_rsp_regNext_valid <= 1'b0;
       DBusCachedPlugin_rspCounter <= 32'h0;
       _zz_2 <= 1'b1;
       HazardSimplePlugin_writeBackBuffer_valid <= 1'b0;
@@ -7554,6 +7623,16 @@ module VexRiscv (
       if(iBus_rsp_valid) begin
         IBusCachedPlugin_rspCounter <= (IBusCachedPlugin_rspCounter + 32'h00000001);
       end
+      if(dataCache_1_io_mem_cmd_valid) begin
+        dataCache_1_io_mem_cmd_rValid <= 1'b1;
+      end
+      if(dataCache_1_io_mem_cmd_s2mPipe_ready) begin
+        dataCache_1_io_mem_cmd_rValid <= 1'b0;
+      end
+      if(dataCache_1_io_mem_cmd_s2mPipe_ready) begin
+        dataCache_1_io_mem_cmd_s2mPipe_rValid <= dataCache_1_io_mem_cmd_s2mPipe_valid;
+      end
+      dBus_rsp_regNext_valid <= dBus_rsp_valid;
       if(dBus_rsp_valid) begin
         DBusCachedPlugin_rspCounter <= (DBusCachedPlugin_rspCounter + 32'h00000001);
       end
@@ -8053,6 +8132,27 @@ module VexRiscv (
     if(IBusCachedPlugin_iBusRsp_stages_2_input_ready) begin
       IBusCachedPlugin_s2_tightlyCoupledHit <= IBusCachedPlugin_s1_tightlyCoupledHit;
     end
+    if(dataCache_1_io_mem_cmd_ready) begin
+      dataCache_1_io_mem_cmd_rData_wr <= dataCache_1_io_mem_cmd_payload_wr;
+      dataCache_1_io_mem_cmd_rData_uncached <= dataCache_1_io_mem_cmd_payload_uncached;
+      dataCache_1_io_mem_cmd_rData_address <= dataCache_1_io_mem_cmd_payload_address;
+      dataCache_1_io_mem_cmd_rData_data <= dataCache_1_io_mem_cmd_payload_data;
+      dataCache_1_io_mem_cmd_rData_mask <= dataCache_1_io_mem_cmd_payload_mask;
+      dataCache_1_io_mem_cmd_rData_size <= dataCache_1_io_mem_cmd_payload_size;
+      dataCache_1_io_mem_cmd_rData_last <= dataCache_1_io_mem_cmd_payload_last;
+    end
+    if(dataCache_1_io_mem_cmd_s2mPipe_ready) begin
+      dataCache_1_io_mem_cmd_s2mPipe_rData_wr <= dataCache_1_io_mem_cmd_s2mPipe_payload_wr;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_uncached <= dataCache_1_io_mem_cmd_s2mPipe_payload_uncached;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_address <= dataCache_1_io_mem_cmd_s2mPipe_payload_address;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_data <= dataCache_1_io_mem_cmd_s2mPipe_payload_data;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_mask <= dataCache_1_io_mem_cmd_s2mPipe_payload_mask;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_size <= dataCache_1_io_mem_cmd_s2mPipe_payload_size;
+      dataCache_1_io_mem_cmd_s2mPipe_rData_last <= dataCache_1_io_mem_cmd_s2mPipe_payload_last;
+    end
+    dBus_rsp_regNext_payload_last <= dBus_rsp_payload_last;
+    dBus_rsp_regNext_payload_data <= dBus_rsp_payload_data;
+    dBus_rsp_regNext_payload_error <= dBus_rsp_payload_error;
     HazardSimplePlugin_writeBackBuffer_payload_address <= HazardSimplePlugin_writeBackWrites_payload_address;
     HazardSimplePlugin_writeBackBuffer_payload_data <= HazardSimplePlugin_writeBackWrites_payload_data;
     if(when_MulDivIterativePlugin_l126) begin
